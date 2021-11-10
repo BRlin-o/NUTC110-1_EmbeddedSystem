@@ -1,4 +1,16 @@
 # NUTC 110-1 嵌入式系統
+
+## Midterm
+### Include
+```
+// others
+#include <IRremote.h> // IRremote
+
+// HW4
+#include <LiquidCrystal_PCF8574.h> // LiquidCrystal_PCF8574
+#include "DHT.h" // DHT sensor library
+```
+
 ## HW1
     LED  3 順序亮
     delay 100
@@ -30,6 +42,6 @@
     拍一下手開燈，在拍一下關燈
 ## HW7
     超音波測距顯示
-## HW9
+## HW8
     音樂播放
     小蜜蜂跟馬力歐
