@@ -2,6 +2,9 @@
 #include <LiquidCrystal_PCF8574.h> // LiquidCrystal_PCF8574
 #include <DHT.h> // DHT sensor library
 
+// HW8
+#include "pitches.h"
+
 // -------------------Define Value---------------------
 #define DHT_PIN 10
 #define DHT_TYPE DHT11
@@ -10,9 +13,11 @@
 #define ECHO_PIN 11
 #define TRIG_PIN 12
 //#define RECV_PIN 10
+#define BZR_PIN 9
 
 int LED_length();
 int ORDER_length();
+void buzzer(int, int, double);
 
 const int LED_PIN[] = {2, 3, 4};
 const int ORDER_PIN[] = {5, 6, 7};
@@ -22,7 +27,7 @@ int ORDER_SIZE = 0;
 int LED_SIZE = 0;
 
 int TYPE = -1;
-int i=0, lp_t = 0;
+unsigned int i=0, lp_t = 0;
 
 // ------------Value, Object---------------
 // HW4
@@ -46,6 +51,36 @@ int KY_status = 0;
 
 // HW7
 long duration, cm, inches;
+
+// HW8
+const int freq[7][7] = {
+  {NOTE_C1,NOTE_D1,NOTE_E1,NOTE_F1,NOTE_G1,NOTE_A1,NOTE_B1},
+  {NOTE_C2,NOTE_D2,NOTE_E2,NOTE_F2,NOTE_G2,NOTE_A2,NOTE_B2},
+  {NOTE_C3,NOTE_D3,NOTE_E3,NOTE_F3,NOTE_G3,NOTE_A3,NOTE_B3},
+  {NOTE_C4,NOTE_D4,NOTE_E4,NOTE_F4,NOTE_G4,NOTE_A4,NOTE_B4},
+  {NOTE_C5,NOTE_D5,NOTE_E5,NOTE_F5,NOTE_G5,NOTE_A5,NOTE_B5},
+  {NOTE_C6,NOTE_D6,NOTE_E6,NOTE_F6,NOTE_G6,NOTE_A6,NOTE_B6},
+  {NOTE_C7,NOTE_D7,NOTE_E7,NOTE_F7,NOTE_G7,NOTE_A7,NOTE_B7}
+};
+const int MelodySize = 4;
+const String melody[MelodySize] = 
+//{ // rickroll
+//  "(56)1(6)3 3 2   ",
+//  "(56)1(6)2 2 1 (6)",
+//  "(56)1(6)1 2(7 6 5)2 1 "
+//};
+{ // rickroll
+  "(56)1(6)332",
+  "(56)1(6)221(6)",
+  "(56)1(6)12(765)21"
+};
+//
+const double melody_time[MelodySize][20] = {
+  {0.5, 0.5, 0.5, 0.5, 1, 1, 4},
+  {0.5, 0.5, 0.5, 0.5, 1, 1, 3, 1},
+  {0.5, 0.5, 0.5, 0.5, 1.5, 0.5, 1, 1, 1, 2.5, 2.5}
+};
+
 
 // -------------SETUP---------------
 void setup() {
@@ -185,8 +220,30 @@ void loop() {
       inches = (duration / 2) / 74;
     
       Serial.print("Distance: " + String(inches) + "in,  " + String(cm) + "cm");
+      break;
     case 7: //HW8
       // todo Homeword 8: Music
+      if(lp_t > 0)break;
+      int l = 4;
+      for(i=0;i<MelodySize;++i){
+        int t_j = 0;
+        for(int j=0;j<melody[i].length();++j) {
+          if(melody[i][j] == '(')l--;
+          if(melody[i][j] == ')')l++;
+          if(melody[i][j] == 48){
+            int dly = 1;
+            while(j+1<melody[i].length() && melody[i][j+1]==' ')j++,dly++;
+            delay(dly*100+50); 
+          }
+          if(!(melody[i][j] > 48 && melody[i][j] < 58))continue;
+          int m = (int)(melody[i][j]-48);
+//          int buz_t = 1;
+//          while(j+1<melody[i].length() && melody[i][j+1]==' ')j++,buz_t++;
+          double buz_t = melody_time[i][t_j++];
+          buzzer(l, m, buz_t);
+          Serial.print(String(l) + ":" + String(m)+"("+String(buz_t*250)+"ms)"+", ");
+        }
+      }
       break;
   }
   
@@ -200,4 +257,16 @@ int ORDER_length() {
 
 int LED_length() {
   return sizeof(LED_PIN)/sizeof(int);
+}
+
+
+// @params
+//// l: 音高
+//// 2: 音色
+//// 3: 持續時間
+void buzzer(int l, int f, double t) {
+  tone(BZR_PIN, freq[l-1][f-1]);
+  delay(t*100); 
+  noTone(BZR_PIN);
+  delay(50);
 }
